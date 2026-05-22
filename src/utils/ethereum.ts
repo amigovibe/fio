@@ -21,28 +21,28 @@ export const CHAINS: Record<ChainId, ChainConfig> = {
   ethereum: {
     name: 'Ethereum Mainnet',
     nativeCurrency: 'ETH',
-    apiUrl: 'https://api.etherscan.io/v2/api',
+    apiUrl: 'https://eth.blockscout.com/api',
     explorerUrl: 'https://etherscan.io',
     priceKey: 'ethprice',
-    defaultApiKey: 'YourEtherscanKey',
+    defaultApiKey: '',
     chainId: 1,
   },
   polygon: {
     name: 'Polygon',
     nativeCurrency: 'POL',
-    apiUrl: 'https://api.etherscan.io/v2/api',
+    apiUrl: 'https://polygon.blockscout.com/api',
     explorerUrl: 'https://polygonscan.com',
     priceKey: 'maticprice',
-    defaultApiKey: 'YourPolygonscanKey',
+    defaultApiKey: '',
     chainId: 137,
   },
   sepolia: {
     name: 'Sepolia Testnet',
     nativeCurrency: 'ETH',
-    apiUrl: 'https://api.etherscan.io/v2/api',
+    apiUrl: 'https://eth-sepolia.blockscout.com/api',
     explorerUrl: 'https://sepolia.etherscan.io',
     priceKey: 'ethprice',
-    defaultApiKey: 'YourEtherscanKey',
+    defaultApiKey: '',
     chainId: 11155111,
   },
   solana: {
@@ -277,15 +277,11 @@ export async function fetchTransactions(
 
   const chain = CHAINS[chainId];
   const trimmedKey = (apiKey && apiKey.trim()) || ENV_ETHERSCAN_KEY;
-  const isPlaceholder = trimmedKey === chain.defaultApiKey || trimmedKey === 'YourEtherscanKey' || trimmedKey === 'YourPolygonscanKey';
-  const hasNoKey = !trimmedKey || isPlaceholder;
+  const isPlaceholder = !trimmedKey || trimmedKey === 'YourEtherscanKey' || trimmedKey === 'YourPolygonscanKey' || (chain.defaultApiKey && trimmedKey === chain.defaultApiKey);
 
-  if (hasNoKey) {
-    throw new Error('An Etherscan API Key is required for V2 API queries. Please configure a valid free Etherscan API Key in Settings below.');
-  }
-
-  const keyParam = `&apikey=${trimmedKey}`;
-  const chainIdParam = chain.chainId ? `&chainid=${chain.chainId}` : '';
+  const keyParam = isPlaceholder ? '' : `&apikey=${trimmedKey}`;
+  const isEtherscan = chain.apiUrl.includes('etherscan.io');
+  const chainIdParam = (isEtherscan && chain.chainId) ? `&chainid=${chain.chainId}` : '';
   const url = `${chain.apiUrl}?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=desc${chainIdParam}${keyParam}`;
 
   try {
@@ -317,9 +313,9 @@ export async function fetchTransactions(
         errorMsg.includes('Invalid API Key') || 
         errorMsg.includes('apikey')
       ) {
-        errorMsg = 'An Etherscan API Key is required for V2 API queries. Please configure a valid free Etherscan API Key in Settings below.';
-      } else if (errorMsg === 'NOTOK' || errorMsg.includes('rate limit') || errorMsg.includes('Max rate limit')) {
-        errorMsg = 'Rate limit exceeded (Etherscan returned NOTOK). Please wait a few seconds, retry, or configure your own free API Key in settings.';
+        errorMsg = 'The block explorer API key is invalid. Please verify it in Settings or clear it to use the public keyless tier.';
+      } else if (errorMsg === 'NOTOK' || errorMsg.includes('rate limit') || errorMsg.includes('Max rate limit') || errorMsg.includes('too many requests')) {
+        errorMsg = 'Rate limit exceeded. Please wait a few seconds, retry, or configure your own free API Key in Settings for higher limits.';
       }
       throw new Error(errorMsg);
     }
