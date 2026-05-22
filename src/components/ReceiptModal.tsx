@@ -67,6 +67,7 @@ export function ReceiptModal({ tx, isOpen, onClose, nativePrice, activeAddress }
   const [copiedTo, setCopiedTo] = React.useState(false);
   const [copiedHash, setCopiedHash] = React.useState(false);
   const [isExporting, setIsExporting] = React.useState(false);
+  const [isExportingPdf, setIsExportingPdf] = React.useState(false);
   const [exportTheme, setExportTheme] = React.useState<'light' | 'dark'>('light');
 
   const receiptExportRef = useRef<HTMLDivElement>(null);
@@ -183,19 +184,35 @@ export function ReceiptModal({ tx, isOpen, onClose, nativePrice, activeAddress }
     }
   };
 
-  const handlePrint = () => {
-    // Add print-active classes to elements to isolate the receipt in printable area
-    const overlay = document.getElementById('receipt-modal-overlay');
-    const content = document.getElementById('receipt-modal-content');
-    
-    if (overlay && content) {
-      overlay.classList.add('print-active');
-      content.classList.add('print-active');
-      
-      window.print();
-      
-      overlay.classList.remove('print-active');
-      content.classList.remove('print-active');
+  const handleDownloadPdf = async () => {
+    const node = receiptExportRef.current;
+    if (!node) return;
+    setIsExportingPdf(true);
+    try {
+      if (document.fonts?.ready) await document.fonts.ready;
+
+      const dataUrl = await htmlToImage.toPng(node, {
+        pixelRatio: 2,
+        backgroundColor: pal.cardBg,
+      });
+
+      const width = node.offsetWidth;
+      const height = node.offsetHeight;
+
+      const { jsPDF } = await import('jspdf');
+      const pdf = new jsPDF({
+        orientation: width > height ? 'l' : 'p',
+        unit: 'pt',
+        format: [width, height],
+      });
+
+      pdf.addImage(dataUrl, 'PNG', 0, 0, width, height);
+      pdf.save(`tx-receipt-${tx.hash.substring(0, 8)}.pdf`);
+    } catch (error) {
+      console.error('Error generating receipt PDF:', error);
+      alert('Failed to generate PDF receipt.');
+    } finally {
+      setIsExportingPdf(false);
     }
   };
 
@@ -517,8 +534,13 @@ export function ReceiptModal({ tx, isOpen, onClose, nativePrice, activeAddress }
           >
             <Download size={16} /> {isExporting ? 'Exporting...' : 'Download JPEG'}
           </button>
-          <button className="btn btn-primary" onClick={handlePrint}>
-            <Printer size={16} /> Print PDF
+          <button 
+            className="btn btn-primary" 
+            onClick={handleDownloadPdf}
+            disabled={isExportingPdf}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+          >
+            <Download size={16} /> {isExportingPdf ? 'Exporting...' : 'Download PDF'}
           </button>
         </div>
       </div>

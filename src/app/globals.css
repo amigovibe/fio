@@ -478,6 +478,15 @@ a {
   gap: 1.5rem;
 }
 
+@media (min-width: 641px) and (max-width: 767px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .dashboard-grid > div:nth-child(3) {
+    grid-column: span 2;
+  }
+}
+
 @media (min-width: 768px) {
   .dashboard-grid {
     grid-template-columns: 1fr 1fr 1fr;
@@ -1121,12 +1130,37 @@ a {
    MOBILE RESPONSIVENESS
    ========================================================================== */
 
-/* --- Desktop: show table, hide cards --- */
+/* --- Desktop default: show table, hide cards --- */
 .tx-table-wrapper {
   display: block;
 }
 .tx-cards-mobile {
   display: none;
+}
+
+/* --- Tablet and Mobile breakpoint (≤ 1024px) --- */
+@media (max-width: 1024px) {
+  .tx-table-wrapper {
+    display: none;
+  }
+  .tx-cards-mobile {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+    margin-top: 0.25rem;
+  }
+}
+
+/* --- Tablet specific breakpoint (641px – 1024px) --- */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .app-container {
+    padding: 1.5rem 1rem;
+    gap: 1.75rem;
+  }
+
+  .glass-panel {
+    padding: 1.4rem 1.25rem;
+  }
 }
 
 /* --- Mobile base breakpoint (≤ 640px) --- */
@@ -1174,16 +1208,11 @@ a {
     font-size: 1.65rem;
   }
 
-  /* --- Transaction table: hide on mobile, show cards --- */
-  .tx-table-wrapper {
-    display: none;
-  }
-
+  /* Redefine tx cards for single column layout on mobile */
   .tx-cards-mobile {
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
-    margin-top: 0.25rem;
   }
 
   /* --- Search form: stack vertically --- */
@@ -1269,17 +1298,6 @@ a {
   }
 }
 
-/* --- Medium breakpoint (641px – 767px) --- */
-@media (min-width: 641px) and (max-width: 767px) {
-  .app-container {
-    padding: 1.5rem 1rem;
-  }
-
-  .glass-panel {
-    padding: 1.4rem 1.25rem;
-  }
-}
-
 /* Tx mobile card styles (always defined so JS inline styles don't fight them) */
 .tx-card-mobile {
   cursor: pointer;
@@ -1288,4 +1306,16 @@ a {
   border-left: 2px solid transparent;
   border-radius: 10px;
   padding: 0.85rem 1rem;
-  transition: all var(--transi
+  transition: all var(--transition-fast);
+}
+
+.tx-card-mobile:hover {
+  background-color: rgba(255, 255, 255, 0.035) !important;
+  border-left-color: var(--accent-cyan) !important;
+  transform: translateY(-2px);
+}
+
+[data-theme="light"] .tx-card-mobile:hover {
+  background-color: rgba(10, 22, 40, 0.015) !important;
+  border-left-color: var(--accent-purple) !important;
+}
