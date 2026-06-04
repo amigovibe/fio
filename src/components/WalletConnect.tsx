@@ -30,10 +30,14 @@ export function WalletConnect({
  
   // Handle wallet connection trigger
   const handleConnect = () => {
-    // Connect using first injected wallet connector (typically MetaMask)
+    // Connect using the first injected wallet connector (typically MetaMask).
     const injected = connectors.find((c) => c.id === 'injected') || connectors[0];
-    if (injected) {
+    const hasProvider = typeof window !== 'undefined' && 'ethereum' in window;
+    if (injected && hasProvider) {
+      setSearchError('');
       connect({ connector: injected });
+    } else {
+      setSearchError('No Web3 wallet detected. Install MetaMask (or another EVM wallet), or paste any address above to scan it.');
     }
   };
  
@@ -81,6 +85,8 @@ export function WalletConnect({
         return 'Scan receipts for Solana address (Base58...)';
       case 'bitcoin':
         return 'Scan receipts for Bitcoin address (1, 3, or bc1...)';
+      case 'base':
+        return 'Scan receipts for Base address (0x...)';
       case 'polygon':
         return 'Scan receipts for Polygon address (0x...)';
       case 'sepolia':

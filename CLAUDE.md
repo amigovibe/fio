@@ -1,7 +1,7 @@
 # TxReceipts — Claude Code Context
 
 ## What this project is
-TxReceipts is a Next.js 14 Web3 blockchain accounting app. Users connect a wallet (or paste any address) and get a full transaction history with downloadable PDF/JPEG receipts. Supports Ethereum mainnet, Polygon, Sepolia testnet, Solana, and Bitcoin.
+TxReceipts is a Next.js 14 Web3 blockchain accounting app. Users connect a wallet (or paste any address) and get a full transaction history with downloadable PDF/JPEG receipts. Supports Ethereum mainnet, Base, Polygon, Sepolia testnet, Solana, and Bitcoin.
 
 ## Commands
 ```bash
@@ -26,6 +26,9 @@ src/
     globals.css        ← ALL styles live here — CSS variables + utility classes
     layout.tsx         ← Root layout, theme provider, wagmi config
     page.tsx           ← Main page shell
+    api/
+      transactions/route.ts  ← backend: scan + normalize wallet history (all chains)
+      prices/route.ts        ← backend: live USD prices (CoinGecko)
   components/
     Dashboard.tsx      ← Top-level: stats, charts, LiveTicker, assembles everything
     WalletConnect.tsx  ← Wallet connect/disconnect, address search bar, demo mode
@@ -35,7 +38,8 @@ src/
   context/
     Web3Provider.tsx   ← wagmi + viem provider setup
   utils/
-    ethereum.ts        ← formatAddress, formatWei, CHAINS config, ChainId type
+    ethereum.ts        ← CHAINS config, ChainId type, formatters, shared explorer
+                          fetchers (fetchChainTransactions) + backend-first client
     mockData.ts        ← Demo mode transaction data (used when isDemoMode=true)
 ```
 
@@ -73,14 +77,16 @@ All colors and spacing go through CSS variables in `:root` (dark, default) and `
 All state lives in `page.tsx` and is passed down as props — no Redux, no Zustand. Key state:
 - `activeAddress` — the address currently being viewed
 - `isDemoMode` — whether mock data is active
-- `selectedChain` — `ChainId` ('ethereum' | 'polygon' | 'sepolia' | 'solana' | 'bitcoin')
+- `selectedChain` — `ChainId` ('ethereum' | 'base' | 'polygon' | 'sepolia' | 'solana' | 'bitcoin')
 - `theme` — 'dark' | 'light', applied as `data-theme` attribute on `<html>`
 
 ## APIs
-- Etherscan API for EVM chains (key in `.env.local` as `NEXT_PUBLIC_ETHERSCAN_API_KEY`)
-- Solscan for Solana
-- Blockstream for Bitcoin
-- Falls back to demo data if no API key or network error
+All explorer calls go through our own backend routes (`src/app/api/*`), which fetch + normalize server-side and keep keys off the client. The client (`fetchTransactions` / `fetchLivePrices` in `utils/ethereum.ts`) calls the backend first and **falls back to a direct browser fetch** if the server can't reach the explorer (e.g. restricted egress), so scans work everywhere. The shared `fetchChainTransactions()` powers both paths.
+- **EVM (Ethereum, Base, Polygon, Sepolia)**: keyless Blockscout by default; Etherscan V2 multichain when `ETHERSCAN_API_KEY` is set (one key, all EVM chains). Capped to the 1,000 most recent txns.
+- **Bitcoin**: mempool.space (Esplora API), with blockstream.info as a fallback. Keyless.
+- **Solana**: Helius parsed transactions — requires `HELIUS_API_KEY` (or a per-chain key in the Settings drawer).
+- **Prices**: CoinGecko (keyless) via `/api/prices`.
+- Optional keys are server-side env vars (`ETHERSCAN_API_KEY`, `HELIUS_API_KEY`) — see `.env.local.example`. Legacy `NEXT_PUBLIC_*` names are still honoured.
 
 ## Common tasks
 - **Add a new chain**: add to `CHAINS` in `ethereum.ts`, add case in `WalletConnect.tsx` placeholder/validation

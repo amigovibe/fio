@@ -1,36 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<div align="center">
 
-## Getting Started
+# Fio
 
-First, run the development server:
+**On-chain receipts & gas analytics.**
+
+Turn any wallet or blockchain address into itemized, verifiable transaction receipts — with gas analytics and one-tap PDF/JPEG export.
+
+</div>
+
+---
+
+## What it is
+
+Fio is a Next.js Web3 accounting app. Connect a wallet (or paste any public address) and get a full transaction history, gas-spend analytics, and downloadable receipts for every transaction — each with a **scannable QR code** that links to the canonical block-explorer page for verification.
+
+## Features
+
+- 🔗 **Multi-chain** — Ethereum, Base, Polygon, Sepolia (EVM), plus Solana and Bitcoin
+- 🧾 **Premium fintech receipts** — itemized, with a real scannable verification QR; download as **PDF or JPEG**, in light or dark (the on-screen preview matches the download exactly)
+- ⛽ **Gas analytics** — total fees, average fee/tx, and success rate per scanned wallet
+- 👛 **Connect a wallet or paste an address** — injected EVM wallets (MetaMask, etc.) or any public address
+- 📱 **Fully responsive** — tuned layouts for mobile, tablet, and desktop, with a bottom-sheet receipt on mobile
+- 🌗 **Light & dark themes**
+
+## Supported networks
+
+| Network | Data source | Key required? |
+|---|---|---|
+| Ethereum, Base, Polygon, Sepolia | Blockscout (keyless) or Etherscan V2 | No (key optional, raises rate limits) |
+| Bitcoin | mempool.space → blockstream.info fallback | No |
+| Solana | Helius | Yes (free) |
+
+## Tech stack
+
+- **Framework**: Next.js 16 (App Router), TypeScript
+- **Web3**: wagmi v2 + viem (EVM wallet connection)
+- **Backend**: Next.js Route Handlers (`/api/transactions`, `/api/prices`) proxy + normalize explorer data server-side
+- **Styling**: a single `src/app/globals.css` with CSS custom properties (no Tailwind), dark + light themes
+- **Charts**: Recharts · **Export**: html-to-image + jsPDF · **QR**: qrcode.react · **Icons**: lucide-react
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Other scripts:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build    # production build
+npm run start    # serve the production build
+npm run lint     # ESLint
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Environment variables (optional)
 
-## Learn More
+Everything works **keyless** out of the box. To raise rate limits or enable Solana, copy `.env.local.example` to `.env.local` and fill in:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+ETHERSCAN_API_KEY=   # one key covers Ethereum, Base, Polygon & Sepolia (Etherscan V2)
+HELIUS_API_KEY=      # required to scan Solana addresses
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Keys are read **server-side only** (no `NEXT_PUBLIC_` prefix), so they never reach the browser.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## How scanning works
 
-## Deploy on Vercel
+Wallet scans go through Fio's own backend routes, which fetch and normalize explorer data server-side (keeping any keys off the client and avoiding CORS). If the server can't reach an explorer (e.g. restricted egress), the client transparently **falls back to a direct browser fetch**, so scans work everywhere. Results are capped at the 1,000 most recent transactions per address.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Project structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+  app/
+    page.tsx                  Main shell + app state
+    layout.tsx                Root layout, metadata, wagmi provider
+    globals.css               All styles (CSS variables, light/dark)
+    icon.svg                  Fio favicon
+    api/
+      transactions/route.ts   Backend: scan + normalize wallet history
+      prices/route.ts         Backend: live USD prices
+  components/                 Dashboard, WalletConnect, TransactionList, ReceiptModal, Logo
+  context/Web3Provider.tsx    wagmi + react-query setup
+  utils/                      ethereum.ts (chains, formatters, fetchers), types.ts
+```
+
+## Deploy
+
+Deploys cleanly to any Next.js host (e.g. Vercel). Set `ETHERSCAN_API_KEY` / `HELIUS_API_KEY` as environment variables on the host to use the keyed tier; otherwise the keyless tier is used automatically.
