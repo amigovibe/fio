@@ -355,7 +355,7 @@ export default function Home() {
               </span>
             </h2>
             <p style={{ maxWidth: '600px', color: 'var(--text-secondary)', fontSize: '1.02rem', lineHeight: 1.65, margin: '0 auto' }}>
-              Connect your Ethereum wallet or search any ledger address to generate itemized, tax-compliant PDF invoices for smart contract executions, token swaps, and gas usage.
+              Connect your wallet or search any address to generate itemized, tax-compliant PDF receipts for smart contract executions, token swaps, and gas usage across every supported chain.
             </p>
           </div>
 
