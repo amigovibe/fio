@@ -13,7 +13,7 @@ export interface Transaction {
   input: string;
   contractAddress: string;
   methodName?: string;
-  chain: 'ethereum' | 'polygon' | 'sepolia' | 'solana' | 'bitcoin';
+  chain: 'ethereum' | 'base' | 'polygon' | 'sepolia' | 'solana' | 'bitcoin';
   tokenSymbol?: string;
   tokenDecimal?: string;
 }

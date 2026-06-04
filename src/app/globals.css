@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 :root {
   /* Color Palette - Titanium Dark */
@@ -46,9 +46,9 @@
 
   /* Layout and Sizing */
   --max-width: 1200px;
-  --border-radius-sm: 8px;
-  --border-radius-md: 14px;
-  --border-radius-lg: 20px;
+  --border-radius-sm: 10px;
+  --border-radius-md: 20px;
+  --border-radius-lg: 24px;
   
   /* Transitions */
   --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -57,47 +57,48 @@
 }
 
 [data-theme="light"] {
-  /* Color Palette - Titanium Light / Frost */
-  --bg-primary: #eff6ff;
-  --bg-secondary: #ffffff;
-  
-  --text-primary: #0a1628;
-  --text-secondary: #1e3a6e;
-  --text-muted: #5a7aa5;
-  
-  --accent-cyan: #1e40af;
-  --accent-cyan-glow: rgba(30, 64, 175, 0.12);
-  --accent-cyan-strong: rgba(30, 64, 175, 0.18);
-  --accent-purple: #2563eb;
-  --accent-purple-glow: rgba(37, 99, 235, 0.08);
-  --accent-purple-strong: rgba(37, 99, 235, 0.16);
-  --accent-gradient: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
-  --accent-gradient-alt: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  /* Color Palette — Modern Slate (ultra-clean Web3 aesthetic) */
+  --bg-primary: #f8fafc;        /* soft off-white slate */
+  --bg-secondary: #ffffff;       /* pure white surfaces */
+
+  --text-primary: #0f172a;       /* deep slate navy */
+  --text-secondary: #475569;     /* slate 600 */
+  --text-muted: #94a3b8;         /* slate 400 */
+
+  --accent-cyan: #2563eb;        /* royal blue — primary accent */
+  --accent-cyan-glow: rgba(37, 99, 235, 0.12);
+  --accent-cyan-strong: rgba(37, 99, 235, 0.22);
+  --accent-purple: #1e40af;      /* deeper blue — secondary accent */
+  --accent-purple-glow: rgba(30, 64, 175, 0.10);
+  --accent-purple-strong: rgba(30, 64, 175, 0.20);
+  --accent-gradient: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  --accent-gradient-alt: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
   --status-success-strong: rgba(16, 185, 129, 0.22);
-  
+
   --status-success: #10b981;
-  --status-success-bg: rgba(16, 185, 129, 0.08);
+  --status-success-bg: rgba(16, 185, 129, 0.10);
   --status-pending: #f59e0b;
-  --status-pending-bg: rgba(245, 158, 11, 0.08);
+  --status-pending-bg: rgba(245, 158, 11, 0.10);
   --status-error: #ef4444;
-  --status-error-bg: rgba(239, 68, 68, 0.08);
+  --status-error-bg: rgba(239, 68, 68, 0.10);
 
   /* Gas Classification Badges */
   --gas-low: #10b981;
   --gas-low-bg: rgba(16, 185, 129, 0.1);
-  --gas-avg: #0284c7;
-  --gas-avg-bg: rgba(2, 132, 199, 0.1);
+  --gas-avg: #2563eb;
+  --gas-avg-bg: rgba(37, 99, 235, 0.1);
   --gas-high: #ea580c;
-  --gas-high-bg: rgba(234, 88, 12, 0.08);
-  
-  /* Glassmorphism Settings */
-  --glass-bg: rgba(255, 255, 255, 0.88);
-  --glass-border: rgba(10, 22, 40, 0.08);
-  --glass-border-hover: rgba(10, 22, 40, 0.16);
-  --glass-blur: blur(16px);
-  --glass-shadow: 0 12px 30px 0 rgba(14, 30, 60, 0.07);
+  --gas-high-bg: rgba(234, 88, 12, 0.10);
 
-  --logo-gradient: linear-gradient(135deg, #0a1628 50%, #1e3a8a 100%);
+  /* Surfaces — opaque white cards with a soft, blurred drop shadow.
+     Glass blur disabled in light mode for a crisp, clean look. */
+  --glass-bg: #ffffff;
+  --glass-border: rgba(15, 23, 42, 0.08);    /* slate 900 @ 8% */
+  --glass-border-hover: rgba(15, 23, 42, 0.16);
+  --glass-blur: blur(0);
+  --glass-shadow: 0 8px 28px 0 rgba(15, 23, 42, 0.05), 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+
+  --logo-gradient: linear-gradient(135deg, #0f172a 50%, #2563eb 100%);
   --accent-btn-text: #ffffff;
 }
 
@@ -337,25 +338,11 @@ a {
   gap: 0.85rem;
 }
 
-.logo-icon {
-  background: var(--accent-gradient);
-  color: var(--bg-primary);
-  padding: 0.35rem 0.75rem;
-  border-radius: 10px;
-  font-weight: 800;
-  font-family: 'Space Grotesk', sans-serif;
-  letter-spacing: -0.02em;
-  font-size: 1.4rem;
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .logo-text {
   font-size: 1.6rem;
   font-weight: 800;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Hanken Grotesk', sans-serif;
+  letter-spacing: -0.01em;
   background: var(--logo-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -851,159 +838,15 @@ a {
   font-variant-numeric: tabular-nums;
 }
 
-/* Real-time Ticker Styles */
-.ticker-bar {
-  width: 100%;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-bottom: 1px solid var(--glass-border);
-  position: relative;
-  z-index: 100;
-  padding: 0.6rem 1.5rem;
-  font-size: 0.85rem;
+/* ==========================================================================
+   WELCOME HERO — responsive
+   ========================================================================== */
+.welcome-hero {
+  padding: 4rem 2rem;
 }
 
-.ticker-wrapper {
-  max-width: var(--max-width);
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.ticker-section {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.ticker-section-title {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-weight: 700;
-  font-family: 'Space Grotesk', sans-serif;
-  letter-spacing: 0.05em;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.ticker-group {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-}
-
-.ticker-item {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.ticker-asset-badge {
-  font-size: 0.7rem;
-  font-weight: 800;
-  padding: 0.15rem 0.35rem;
-  border-radius: 4px;
-  color: #ffffff;
-}
-
-.ticker-asset-badge.btc {
-  background: #f7931a;
-}
-
-.ticker-asset-badge.eth {
-  background: #627eea;
-}
-
-.ticker-asset-badge.sol {
-  background: #14f195;
-  color: #000000;
-}
-
-.ticker-price {
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 600;
-  color: var(--text-primary);
-  transition: color var(--transition-fast);
-  font-variant-numeric: tabular-nums;
-}
-
-.ticker-gas-price {
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 700;
-  font-size: 0.95rem;
-  color: var(--accent-purple);
-  transition: color var(--transition-fast);
-  font-variant-numeric: tabular-nums;
-}
-
-.ticker-gas-label {
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-.ticker-loading-text {
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  font-style: italic;
-}
-
-.gas-unit {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  margin-left: 0.1rem;
-}
-
-.ticker-divider {
-  height: 16px;
-  width: 1px;
-  background: var(--glass-border);
-}
-
-/* Flash Animations */
-@keyframes tickerFlashGreen {
-  0% {
-    color: var(--status-success);
-    text-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
-  }
-  100% {
-    color: var(--text-primary);
-    text-shadow: none;
-  }
-}
-
-@keyframes tickerFlashRed {
-  0% {
-    color: var(--status-error);
-    text-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
-  }
-  100% {
-    color: var(--text-primary);
-    text-shadow: none;
-  }
-}
-
-.flash-green {
-  animation: tickerFlashGreen 0.8s ease-out;
-}
-
-.flash-red {
-  animation: tickerFlashRed 0.8s ease-out;
-}
-
-@media (max-width: 768px) {
-  .ticker-wrapper {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-  .ticker-divider {
-    display: none;
-  }
+.welcome-hero-title {
+  font-size: 2.4rem;
 }
 
 /* ==========================================================================
@@ -1095,35 +938,10 @@ a {
   box-shadow: 0 0 8px var(--status-pending);
 }
 
-/* Floating Ticker Pill layout */
-.ticker-bar.floating-pill {
-  margin: 1.2rem auto 0;
-  max-width: var(--max-width);
-  width: calc(100% - 3rem);
-  border-radius: 9999px;
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
-  padding: 0.55rem 2rem;
-}
-
-[data-theme="light"] .ticker-bar.floating-pill {
-  box-shadow: var(--glass-shadow), inset 0 1px 0 0 rgba(10, 22, 40, 0.05);
-}
-
 /* Dot matrix watermark for modal styling */
 .dot-matrix-header {
   background-image: radial-gradient(var(--glass-border) 1px, transparent 1px);
   background-size: 10px 10px;
-}
-
-/* Live indicators animation */
-@keyframes pulseGlow {
-  0%, 100% { opacity: 0.5; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.2); }
-}
-
-.pulse-dot {
-  animation: pulseGlow 2s infinite ease-in-out;
 }
 
 /* ==========================================================================
@@ -1184,11 +1002,6 @@ a {
 
   .logo-text {
     font-size: 1.25rem;
-  }
-
-  .logo-icon {
-    font-size: 1.1rem;
-    padding: 0.3rem 0.6rem;
   }
 
   /* Dashboard controls wrap and fill width */
@@ -1287,15 +1100,6 @@ a {
     min-width: 0;
     font-size: 0.85rem;
   }
-
-  /* --- Ticker: compact on mobile --- */
-  .ticker-bar {
-    padding: 0.5rem 0.85rem;
-  }
-
-  .ticker-group {
-    gap: 0.75rem;
-  }
 }
 
 /* Tx mobile card styles (always defined so JS inline styles don't fight them) */
@@ -1318,4 +1122,98 @@ a {
 [data-theme="light"] .tx-card-mobile:hover {
   background-color: rgba(10, 22, 40, 0.015) !important;
   border-left-color: var(--accent-purple) !important;
+}
+
+/* ==========================================================================
+   MOBILE RESPONSIVE OPTIMIZATION — touch targets, scaled hero, no overflow
+   ========================================================================== */
+
+/* Belt-and-suspenders: never let the body scroll horizontally */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+@media (max-width: 640px) {
+  /* Scale hero down and tighten padding so it fits and breathes on phones */
+  .welcome-hero {
+    padding: 2.5rem 1.1rem;
+  }
+  .welcome-hero-title {
+    font-size: 1.85rem;
+  }
+
+  /* iOS HIG / Material recommend 44px minimum tap targets */
+  .btn {
+    min-height: 44px;
+  }
+  .input-field {
+    min-height: 44px;
+  }
+
+  /* Long monospaced strings (hashes/addresses) shouldn't blow out the layout */
+  .glass-panel,
+  .modal-content {
+    overflow-wrap: anywhere;
+  }
+}
+
+/* Extra-narrow phones: scale the headline once more so it always fits */
+@media (max-width: 360px) {
+  .welcome-hero {
+    padding: 2.2rem 0.9rem;
+  }
+  .welcome-hero-title {
+    font-size: 1.55rem;
+  }
+}
+
+/* (Legacy "thermal POS receipt" styles removed — superseded by the inline
+   fintech receipt rendered in ReceiptModal.tsx.) */
+
+/* ==========================================================================
+   FINTECH RECEIPT — modal shell for the premium transaction receipt.
+   The receipt itself is an inline-styled component (see ReceiptModal.tsx) so it
+   renders identically on screen and through html-to-image export; only the
+   surrounding modal needs CSS here.
+   NOTE: the .receipt-thermal / .receipt-terminal rules above are the previous
+   "thermal POS" design — now unused/dead and safe to delete in a cleanup pass.
+   ========================================================================== */
+.receipt-fintech-modal {
+  max-width: 468px;
+}
+.receipt-fintech-modal .modal-header {
+  padding: 0.8rem 1rem;
+}
+.receipt-fintech-modal .modal-body {
+  padding: 1.25rem;
+}
+.receipt-fintech-modal .modal-footer {
+  padding: 0.9rem 1rem;
+  flex-wrap: wrap;
+}
+@media (max-width: 640px) {
+  .receipt-fintech-modal { max-width: 100%; }
+  .receipt-fintech-modal .modal-body { padding: 1rem; }
+}
+
+/* ==========================================================================
+   RESPONSIVE OPTIMIZATIONS — standardized tiers: mobile ≤640, tablet 641–1024,
+   desktop ≥1025. Touch-target + input-sizing rules per the UX checklist.
+   ========================================================================== */
+
+/* Mobile: 16px inputs stop iOS Safari auto-zoom on focus; 44px min touch targets. */
+@media (max-width: 640px) {
+  .input-field,
+  select.input-field { font-size: 16px; }
+  select.input-field { min-height: 44px; }
+  .header .btn-secondary,
+  .dashboard-controls .btn-secondary { min-height: 44px; min-width: 44px; }
+  /* the header logo + controls stack with comfortable spacing */
+  .header { gap: 0.9rem; }
+}
+
+/* Tablet: header stays a single row; give the dashboard a touch more room. */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .logo-text { font-size: 1.45rem; }
 }

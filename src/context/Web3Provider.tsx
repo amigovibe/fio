@@ -3,7 +3,7 @@
 import React, { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WagmiProvider, createConfig, http } from 'wagmi';
-import { mainnet, polygon, sepolia } from 'wagmi/chains';
+import { mainnet, base, polygon, sepolia } from 'wagmi/chains';
 import { injected } from 'wagmi/connectors';
 
 // Initialize React Query client
@@ -18,10 +18,11 @@ const queryClient = new QueryClient({
 
 // Configure Wagmi with public RPC endpoints
 export const config = createConfig({
-  chains: [mainnet, polygon, sepolia],
+  chains: [mainnet, base, polygon, sepolia],
   connectors: [injected()],
   transports: {
     [mainnet.id]: http(),
+    [base.id]: http(),
     [polygon.id]: http(),
     [sepolia.id]: http(),
   },

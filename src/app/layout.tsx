@@ -1,10 +1,17 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Web3Provider } from '../context/Web3Provider';
 
 export const metadata: Metadata = {
-  title: 'TxReceipts | Ledger Transaction Invoices & Gas Analytics',
-  description: 'Instantly generate itemized, tax-compliant receipts and invoices for your Ethereum & EVM blockchain transactions. Visualize gas spending trends and export professional receipt prints.',
+  title: 'Fio — Web3 Receipts & Gas Analytics',
+  description: 'Fio turns any wallet or blockchain address into itemized, verifiable transaction receipts — with gas analytics and one-tap PDF/JPEG export across Ethereum, Base, Polygon, Solana and Bitcoin.',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: '#0b1220',
 };
 
 export default function RootLayout({

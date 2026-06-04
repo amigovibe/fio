@@ -5,11 +5,11 @@ import { WalletConnect } from '../components/WalletConnect';
 import { Dashboard } from '../components/Dashboard';
 import { TransactionList } from '../components/TransactionList';
 import { ReceiptModal } from '../components/ReceiptModal';
+import { FioMark } from '../components/Logo';
 import { useConnect } from 'wagmi';
 import { Transaction } from '../utils/types';
 import { fetchTransactions, fetchLivePrices, ChainId, CHAINS } from '../utils/ethereum';
-import { FileText, Settings, ShieldAlert, Sparkles, RefreshCw, Key, Sun, Moon, Wallet } from 'lucide-react';
-import { LiveTicker } from '../components/LiveTicker';
+import { Settings, ShieldAlert, Sparkles, RefreshCw, Key, Sun, Moon, Wallet } from 'lucide-react';
 
 export default function Home() {
   const [activeAddress, setActiveAddress] = useState<string | null>(null);
@@ -20,6 +20,7 @@ export default function Home() {
   const [selectedChain, setSelectedChain] = useState<ChainId>('ethereum');
   const [apiKeys, setApiKeys] = useState<Record<ChainId, string>>({
     ethereum: '',
+    base: '',
     polygon: '',
     sepolia: '',
     solana: '',
@@ -42,7 +43,8 @@ export default function Home() {
 
   const handleConnectWallet = () => {
     const injected = connectors.find((c) => c.id === 'injected') || connectors[0];
-    if (injected) {
+    const hasProvider = typeof window !== 'undefined' && 'ethereum' in window;
+    if (injected && hasProvider) {
       connect({ connector: injected });
     } else {
       alert('No Web3 wallet extension detected. Paste any address in the search bar to scan it.');
@@ -51,7 +53,7 @@ export default function Home() {
 
   // Load API keys from localStorage on mount, fetch live prices & initialize theme
   useEffect(() => {
-    const keys = ['ethereum', 'polygon', 'sepolia', 'solana', 'bitcoin'] as ChainId[];
+    const keys = ['ethereum', 'base', 'polygon', 'sepolia', 'solana', 'bitcoin'] as ChainId[];
     const loadedKeys = { ...apiKeys };
     keys.forEach((chain) => {
       const stored = localStorage.getItem(`w3r_api_key_${chain}`);
@@ -172,18 +174,15 @@ export default function Home() {
         <div className="bg-glow bg-glow-2"></div>
       </div>
 
-      {/* Real-time BTC/ETH/SOL Price and multi-chain gas Ticker */}
-      <LiveTicker />
-
       <div className="app-container">
         {/* App Header */}
         <header className="header">
         <div className="logo-container">
-          <div className="logo-icon">TX</div>
+          <FioMark size={42} />
           <div>
-            <h1 className="logo-text">TxReceipts</h1>
+            <h1 className="logo-text">Fio</h1>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              Ledger Accounting Hub <span className="logo-badge">v1.0</span>
+              On-chain receipts <span className="logo-badge">v1.0</span>
             </div>
           </div>
         </div>
@@ -252,7 +251,7 @@ export default function Home() {
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }} className="dashboard-grid">
-            {(['ethereum', 'polygon', 'sepolia', 'solana'] as ChainId[]).map((chain) => {
+            {(['ethereum', 'base', 'polygon', 'sepolia', 'solana'] as ChainId[]).map((chain) => {
               const hasError = chain === selectedChain && errorMsg && (
                 errorMsg.includes('API Key') || 
                 errorMsg.includes('API key') || 
@@ -340,19 +339,19 @@ export default function Home() {
         </div>
       ) : (
         /* Welcome Hero Screen */
-        <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '4rem 2rem', gap: '1.5rem' }}>
-          <div style={{ width: '64px', height: '64px', borderRadius: '16px', background: 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 32px var(--accent-cyan-glow)' }}>
-            <FileText size={32} color="var(--bg-primary)" />
+        <div className="glass-panel welcome-hero" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '1.5rem' }}>
+          <div style={{ filter: 'drop-shadow(0 12px 32px var(--accent-cyan-glow))' }}>
+            <FioMark size={64} />
           </div>
           
           <div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--accent-cyan)', background: 'var(--accent-cyan-glow)', border: '1px solid var(--glass-border)', padding: '0.3rem 0.7rem', borderRadius: '9999px', marginBottom: '1.1rem' }}>
               <Sparkles size={13} /> On-chain accounting, simplified
             </div>
-            <h2 style={{ fontSize: '2.4rem', lineHeight: 1.1, marginBottom: '0.75rem' }}>
+            <h2 className="welcome-hero-title" style={{ lineHeight: 1.1, marginBottom: '0.75rem' }}>
               Welcome to{' '}
               <span style={{ background: 'var(--accent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-                TxReceipts
+                Fio
               </span>
             </h2>
             <p style={{ maxWidth: '600px', color: 'var(--text-secondary)', fontSize: '1.02rem', lineHeight: 1.65, margin: '0 auto' }}>
@@ -393,6 +392,7 @@ export default function Home() {
         }}
         nativePrice={currentNativePrice}
         activeAddress={activeAddress}
+        theme={theme}
       />
     </div>
     </>
