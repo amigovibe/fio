@@ -1,7 +1,7 @@
-# TxReceipts — Claude Code Context
+# Fio — Claude Code Context
 
 ## What this project is
-TxReceipts is a Next.js 14 Web3 blockchain accounting app. Users connect a wallet (or paste any address) and get a full transaction history with downloadable PDF/JPEG receipts. Supports Ethereum mainnet, Base, Polygon, Sepolia testnet, Solana, and Bitcoin.
+Fio (formerly TxReceipts) is a Next.js 14 Web3 blockchain accounting app. Users connect a wallet (or paste any address) and get a full transaction history with downloadable PDF/JPEG receipts. Supports Ethereum mainnet, Base, Polygon, Sepolia testnet, Solana, and Bitcoin.
 
 ## Commands
 ```bash
