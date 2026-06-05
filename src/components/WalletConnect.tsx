@@ -1,18 +1,19 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useAccount, useConnect, useDisconnect } from 'wagmi';
+import { useAccount, useDisconnect } from 'wagmi';
 import { Wallet, LogOut, Search, Loader2 } from 'lucide-react';
 import { formatAddress } from '../utils/ethereum';
 
 import { ChainId } from '../utils/ethereum';
-import { getChainFamily, connectSolanaWallet, connectBitcoinWallet } from '../utils/walletConnectors';
+import { getChainFamily } from '../utils/walletConnectors';
 
 interface WalletConnectProps {
   onSearchAddress: (address: string) => void;
   isLoading: boolean;
   activeAddress: string | null;
   selectedChain: ChainId;
+  onConnectClick: () => void;
 }
 
 export function WalletConnect({
@@ -20,9 +21,9 @@ export function WalletConnect({
   isLoading,
   activeAddress,
   selectedChain,
+  onConnectClick,
 }: WalletConnectProps) {
   const { address, isConnected } = useAccount();
-  const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
   
   const [searchInput, setSearchInput] = useState('');
@@ -30,30 +31,9 @@ export function WalletConnect({
   const [searchFocused, setSearchFocused] = useState(false);
  
   // Handle wallet connection trigger
-  const handleConnect = async () => {
+  const handleConnect = () => {
     setSearchError('');
-    const family = getChainFamily(selectedChain);
-    try {
-      // Solana → Phantom/Solflare; Bitcoin → Unisat; each returns the wallet's address.
-      if (family === 'solana') {
-        onSearchAddress(await connectSolanaWallet());
-        return;
-      }
-      if (family === 'bitcoin') {
-        onSearchAddress(await connectBitcoinWallet());
-        return;
-      }
-      // EVM → injected wallet (MetaMask, Rabby, Coinbase, …) via wagmi.
-      const injected = connectors.find((c) => c.id === 'injected') || connectors[0];
-      const hasProvider = typeof window !== 'undefined' && 'ethereum' in window;
-      if (injected && hasProvider) {
-        connect({ connector: injected });
-      } else {
-        setSearchError('No EVM wallet detected. Install MetaMask (or another EVM wallet), or paste any address above to scan it.');
-      }
-    } catch (err) {
-      setSearchError(err instanceof Error ? err.message : 'Failed to connect wallet.');
-    }
+    onConnectClick();
   };
  
   // Handle manual address lookup search

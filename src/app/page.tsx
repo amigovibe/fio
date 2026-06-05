@@ -6,10 +6,11 @@ import { Dashboard } from '../components/Dashboard';
 import { TransactionList } from '../components/TransactionList';
 import { ReceiptModal } from '../components/ReceiptModal';
 import { FioMark } from '../components/Logo';
-import { useConnect } from 'wagmi';
+import { useConnect, useDisconnect } from 'wagmi';
 import { Transaction } from '../utils/types';
 import { fetchTransactions, fetchLivePrices, ChainId, CHAINS } from '../utils/ethereum';
-import { getChainFamily, connectSolanaWallet, connectBitcoinWallet } from '../utils/walletConnectors';
+import { getChainFamily } from '../utils/walletConnectors';
+import { WalletPicker } from '../components/WalletPicker';
 import { Settings, ShieldAlert, Sparkles, RefreshCw, Key, Sun, Moon, Wallet } from 'lucide-react';
 
 export default function Home() {
@@ -38,32 +39,26 @@ export default function Home() {
   // Modal selection
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
+  const [walletPickerOpen, setWalletPickerOpen] = useState(false);
 
   // Wallet connection (used by the welcome-screen CTA)
   const { connect, connectors } = useConnect();
+  const { disconnect } = useDisconnect();
 
-  const handleConnectWallet = async () => {
-    const family = getChainFamily(selectedChain);
-    try {
-      // Connect the wallet that matches the selected network.
-      if (family === 'solana') {
-        handleAddressSelect(await connectSolanaWallet());
-        return;
-      }
-      if (family === 'bitcoin') {
-        handleAddressSelect(await connectBitcoinWallet());
-        return;
-      }
-      const injected = connectors.find((c) => c.id === 'injected') || connectors[0];
-      const hasProvider = typeof window !== 'undefined' && 'ethereum' in window;
-      if (injected && hasProvider) {
-        connect({ connector: injected });
-      } else {
-        alert('No EVM wallet detected. Paste any address in the search bar to scan it.');
-      }
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to connect wallet.');
-    }
+  const handleConnectWallet = () => setWalletPickerOpen(true);
+
+  // Clicking the logo returns to the landing (welcome) screen: clear the scanned
+  // address + results, disconnect any wallet (so a connected EVM wallet doesn't
+  // immediately re-populate via the sync effect), and close any open panels.
+  const handleGoHome = () => {
+    disconnect();
+    setActiveAddress(null);
+    setTransactions([]);
+    setErrorMsg('');
+    setIsReceiptOpen(false);
+    setSelectedTx(null);
+    setShowSettings(false);
+    setWalletPickerOpen(false);
   };
 
   // Load API keys from localStorage on mount, fetch live prices & initialize theme
@@ -192,7 +187,15 @@ export default function Home() {
       <div className="app-container">
         {/* App Header */}
         <header className="header">
-        <div className="logo-container">
+        <div
+          className="logo-container"
+          onClick={handleGoHome}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleGoHome(); } }}
+          title="Back to home"
+          style={{ cursor: 'pointer' }}
+        >
           <FioMark size={42} />
           <div>
             <h1 className="logo-text">Fio</h1>
@@ -305,6 +308,7 @@ export default function Home() {
         isLoading={isLoading}
         activeAddress={activeAddress}
         selectedChain={selectedChain}
+        onConnectClick={() => setWalletPickerOpen(true)}
       />
 
       {/* Error state */}
@@ -408,6 +412,15 @@ export default function Home() {
         nativePrice={currentNativePrice}
         activeAddress={activeAddress}
         theme={theme}
+      />
+
+      <WalletPicker
+        open={walletPickerOpen}
+        family={getChainFamily(selectedChain)}
+        evmConnectors={connectors}
+        onEvmConnect={(c) => connect({ connector: c })}
+        onAddress={(a) => handleAddressSelect(a)}
+        onClose={() => setWalletPickerOpen(false)}
       />
     </div>
     </>

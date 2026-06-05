@@ -1195,6 +1195,12 @@ html, body {
 @media (max-width: 640px) {
   .receipt-fintech-modal { max-width: 100%; }
   .receipt-fintech-modal .modal-body { padding: 1rem; }
+  /* Footer: the Download Light/Dark toggle takes its own full row, then
+     Close / JPEG / PDF sit on the next row as equal-width buttons that never
+     wrap their labels (fixes the cramped "Clo se" / "J P E G" squashing). */
+  .receipt-fintech-modal .modal-footer { gap: 0.5rem; align-items: stretch; }
+  .receipt-fintech-modal .modal-footer > div { flex: 1 0 100%; margin-right: 0 !important; justify-content: space-between; }
+  .receipt-fintech-modal .modal-footer > .btn { flex: 1 1 0; min-width: 0; white-space: nowrap; font-size: 0.82rem; padding: 0.7rem 0.4rem; }
 }
 
 /* ==========================================================================
