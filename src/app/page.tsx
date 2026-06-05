@@ -9,6 +9,7 @@ import { FioMark } from '../components/Logo';
 import { useConnect } from 'wagmi';
 import { Transaction } from '../utils/types';
 import { fetchTransactions, fetchLivePrices, ChainId, CHAINS } from '../utils/ethereum';
+import { getChainFamily, connectSolanaWallet, connectBitcoinWallet } from '../utils/walletConnectors';
 import { Settings, ShieldAlert, Sparkles, RefreshCw, Key, Sun, Moon, Wallet } from 'lucide-react';
 
 export default function Home() {
@@ -41,13 +42,27 @@ export default function Home() {
   // Wallet connection (used by the welcome-screen CTA)
   const { connect, connectors } = useConnect();
 
-  const handleConnectWallet = () => {
-    const injected = connectors.find((c) => c.id === 'injected') || connectors[0];
-    const hasProvider = typeof window !== 'undefined' && 'ethereum' in window;
-    if (injected && hasProvider) {
-      connect({ connector: injected });
-    } else {
-      alert('No Web3 wallet extension detected. Paste any address in the search bar to scan it.');
+  const handleConnectWallet = async () => {
+    const family = getChainFamily(selectedChain);
+    try {
+      // Connect the wallet that matches the selected network.
+      if (family === 'solana') {
+        handleAddressSelect(await connectSolanaWallet());
+        return;
+      }
+      if (family === 'bitcoin') {
+        handleAddressSelect(await connectBitcoinWallet());
+        return;
+      }
+      const injected = connectors.find((c) => c.id === 'injected') || connectors[0];
+      const hasProvider = typeof window !== 'undefined' && 'ethereum' in window;
+      if (injected && hasProvider) {
+        connect({ connector: injected });
+      } else {
+        alert('No EVM wallet detected. Paste any address in the search bar to scan it.');
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to connect wallet.');
     }
   };
 

@@ -6,6 +6,7 @@ import { Wallet, LogOut, Search, Loader2 } from 'lucide-react';
 import { formatAddress } from '../utils/ethereum';
 
 import { ChainId } from '../utils/ethereum';
+import { getChainFamily, connectSolanaWallet, connectBitcoinWallet } from '../utils/walletConnectors';
 
 interface WalletConnectProps {
   onSearchAddress: (address: string) => void;
@@ -29,15 +30,29 @@ export function WalletConnect({
   const [searchFocused, setSearchFocused] = useState(false);
  
   // Handle wallet connection trigger
-  const handleConnect = () => {
-    // Connect using the first injected wallet connector (typically MetaMask).
-    const injected = connectors.find((c) => c.id === 'injected') || connectors[0];
-    const hasProvider = typeof window !== 'undefined' && 'ethereum' in window;
-    if (injected && hasProvider) {
-      setSearchError('');
-      connect({ connector: injected });
-    } else {
-      setSearchError('No Web3 wallet detected. Install MetaMask (or another EVM wallet), or paste any address above to scan it.');
+  const handleConnect = async () => {
+    setSearchError('');
+    const family = getChainFamily(selectedChain);
+    try {
+      // Solana → Phantom/Solflare; Bitcoin → Unisat; each returns the wallet's address.
+      if (family === 'solana') {
+        onSearchAddress(await connectSolanaWallet());
+        return;
+      }
+      if (family === 'bitcoin') {
+        onSearchAddress(await connectBitcoinWallet());
+        return;
+      }
+      // EVM → injected wallet (MetaMask, Rabby, Coinbase, …) via wagmi.
+      const injected = connectors.find((c) => c.id === 'injected') || connectors[0];
+      const hasProvider = typeof window !== 'undefined' && 'ethereum' in window;
+      if (injected && hasProvider) {
+        connect({ connector: injected });
+      } else {
+        setSearchError('No EVM wallet detected. Install MetaMask (or another EVM wallet), or paste any address above to scan it.');
+      }
+    } catch (err) {
+      setSearchError(err instanceof Error ? err.message : 'Failed to connect wallet.');
     }
   };
  
@@ -72,17 +87,18 @@ export function WalletConnect({
     onSearchAddress(cleanAddress);
   };
 
-  // Sync state if wallet connects/disconnects
+  // Sync the connected EVM wallet address — but ONLY on EVM chains, so a connected
+  // MetaMask 0x address never overrides a Solana/Bitcoin selection.
   React.useEffect(() => {
-    if (isConnected && address && activeAddress !== address) {
+    if (getChainFamily(selectedChain) === 'evm' && isConnected && address && activeAddress !== address) {
       onSearchAddress(address);
     }
-  }, [isConnected, address, activeAddress, onSearchAddress]);
+  }, [isConnected, address, activeAddress, onSearchAddress, selectedChain]);
  
   const getPlaceholder = () => {
     switch (selectedChain) {
       case 'solana':
-        return 'Scan receipts for Solana address (Base58...)';
+        return 'Scan receipts for Solana address, e.g. 9Wz...';
       case 'bitcoin':
         return 'Scan receipts for Bitcoin address (1, 3, or bc1...)';
       case 'base':
