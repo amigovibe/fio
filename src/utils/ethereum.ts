@@ -264,11 +264,23 @@ async function fetchBitcoinTxs(address: string): Promise<Transaction[]> {
   throw lastError || scanError('Failed to fetch Bitcoin transactions.', 502);
 }
 
-// ── Solana (Helius parsed transactions — requires a free key) ──────────────
+// ── Solana ─────────────────────────────────────────────────────────────────
+// Keyless out of the box via public JSON-RPC (getSignaturesForAddress +
+// getTransaction). When a Helius key is supplied (Settings drawer or the
+// HELIUS_API_KEY env var) we use Helius parsed transactions for richer data,
+// falling back to the public RPC if Helius is unreachable.
 async function fetchSolanaTxs(address: string, key: string): Promise<Transaction[]> {
-  if (!key || key === 'YourHeliusKey') {
-    throw scanError('Add a free Helius API key in Settings to scan Solana addresses.', 401);
+  if (key && key !== 'YourHeliusKey') {
+    try {
+      return await fetchSolanaViaHelius(address, key);
+    } catch {
+      // Bad/unreachable key → transparently fall back to the keyless public RPC.
+    }
   }
+  return fetchSolanaViaRpc(address);
+}
+
+async function fetchSolanaViaHelius(address: string, key: string): Promise<Transaction[]> {
   let res: Response, data: any;
   try {
     ({ res, json: data } = await fetchJson(`https://api.helius.xyz/v0/addresses/${encodeURIComponent(address)}/transactions?api-key=${key}`));
@@ -311,6 +323,120 @@ async function fetchSolanaTxs(address: string, key: string): Promise<Transaction
       methodName: rawType.charAt(0).toUpperCase() + rawType.slice(1).toLowerCase(), chain: 'solana',
     };
   });
+}
+
+// Keyless public Solana RPC endpoints. PublicNode is CORS-enabled (works from the
+// browser fallback); mainnet-beta is a server-side backup. getTransaction batches
+// are capped to 1 on public nodes, so we fetch each tx individually (bounded
+// concurrency) after one getSignaturesForAddress call.
+const SOLANA_RPCS = [
+  'https://solana-rpc.publicnode.com',
+  'https://api.mainnet-beta.solana.com',
+];
+
+async function solanaRpcCall(endpoint: string, method: string, params: unknown[], timeoutMs = 12000): Promise<any> {
+  const { res, json } = await fetchJson(endpoint, timeoutMs, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+  });
+  if (!res.ok) throw scanError(`Solana RPC responded with status ${res.status}.`, res.status === 429 ? 429 : 502);
+  if (json?.error) throw scanError(json.error.message || 'Solana RPC returned an error.', 502);
+  return json?.result;
+}
+
+// Run an async mapper over items with a fixed concurrency cap (keeps us under
+// public-RPC rate limits while still parallelising).
+async function mapWithConcurrency<T, R>(items: T[], limit: number, fn: (item: T, index: number) => Promise<R>): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let cursor = 0;
+  const worker = async () => {
+    while (cursor < items.length) {
+      const i = cursor++;
+      results[i] = await fn(items[i], i);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return results;
+}
+
+const toBigLamports = (n: unknown): bigint => {
+  try { return BigInt(typeof n === 'number' ? Math.trunc(n) : ((n as any) ?? 0)); } catch { return 0n; }
+};
+
+// Normalise one RPC (signature + getTransaction) result into our Transaction shape.
+function mapSolanaRpcTx(address: string, sig: any, tx: any): Transaction {
+  const signature = sig?.signature || tx?.transaction?.signatures?.[0] || 'unknown';
+  const blockTime = sig?.blockTime ?? tx?.blockTime ?? Math.floor(Date.now() / 1000);
+  const slot = sig?.slot ?? tx?.slot ?? 0;
+  const isFailed = (sig?.err ?? tx?.meta?.err) != null;
+  const feeLamports = toBigLamports(tx?.meta?.fee ?? 0);
+
+  const keys: any[] = tx?.transaction?.message?.accountKeys ?? [];
+  const keyStr = (k: any): string => (typeof k === 'string' ? k : k?.pubkey) || '';
+  const feePayer = keyStr(keys[0]) || 'unknown';
+
+  // Native SOL transfers can be top-level or inner (CPI) instructions.
+  const innerIx: any[] = (tx?.meta?.innerInstructions ?? []).flatMap((ii: any) => ii?.instructions ?? []);
+  const allIx: any[] = [...(tx?.transaction?.message?.instructions ?? []), ...innerIx];
+
+  let lamports = 0n;
+  let fromAddr = feePayer;
+  let toAddr = '';
+  let matched = false;
+  for (const ix of allIx) {
+    const p = ix?.parsed;
+    const isSystem = ix?.program === 'system' || ix?.programId === '11111111111111111111111111111111';
+    if (!p || !isSystem || (p.type !== 'transfer' && p.type !== 'transferChecked')) continue;
+    const info = p.info || {};
+    const src: string = info.source || '';
+    const dst: string = info.destination || '';
+    const amt = toBigLamports(info.lamports);
+    if (src === address || dst === address) { lamports = amt; fromAddr = src || fromAddr; toAddr = dst; matched = true; break; }
+    if (!matched && !toAddr) { fromAddr = src || fromAddr; toAddr = dst; lamports = amt; }
+  }
+
+  const valueVirtualWei = (lamports * BigInt(10 ** 9)).toString();
+  const feeVirtualWei = feeLamports * BigInt(10 ** 9);
+  const gasPrice = (feeVirtualWei / 200000n).toString();
+
+  let methodName = 'Interaction';
+  if (allIx.some((ix) => ix?.program === 'system' && ix?.parsed?.type === 'transfer')) methodName = 'Transfer';
+  else if (allIx.some((ix) => ix?.program === 'spl-token')) methodName = 'Token Transfer';
+  else if (allIx[0]?.program) methodName = String(allIx[0].program).charAt(0).toUpperCase() + String(allIx[0].program).slice(1);
+
+  return {
+    hash: signature, blockNumber: String(slot), timeStamp: String(blockTime),
+    from: fromAddr, to: toAddr, value: valueVirtualWei, gas: '200000', gasPrice, gasUsed: '200000',
+    isError: isFailed ? '1' : '0', txreceipt_status: isFailed ? '0' : '1', input: '0x', contractAddress: '',
+    methodName, chain: 'solana',
+  };
+}
+
+async function fetchSolanaViaRpc(address: string): Promise<Transaction[]> {
+  const LIMIT = 20;
+  const txConfig = { maxSupportedTransactionVersion: 0, encoding: 'jsonParsed' };
+  let lastError: ScanError | null = null;
+
+  for (const endpoint of SOLANA_RPCS) {
+    try {
+      const sigs: any[] = await solanaRpcCall(endpoint, 'getSignaturesForAddress', [address, { limit: LIMIT }]);
+      if (!Array.isArray(sigs)) { lastError = scanError('Unexpected response from the Solana RPC.', 502); continue; }
+      if (sigs.length === 0) return [];
+
+      const txResults = await mapWithConcurrency(sigs, 4, async (s: any) => {
+        try { return await solanaRpcCall(endpoint, 'getTransaction', [s.signature, txConfig]); }
+        catch { return null; } // a single failed lookup still leaves the signature row
+      });
+
+      return sigs.map((s, idx) => mapSolanaRpcTx(address, s, txResults[idx]));
+    } catch (err: any) {
+      lastError = err?.status ? err : scanError('Could not reach a public Solana RPC. Please retry.', 502);
+      // try the next endpoint
+    }
+  }
+
+  throw lastError || scanError('Could not load Solana transactions from public RPCs. Retry, or add a free Helius API key in Settings.', 502);
 }
 
 // Direct fetch+normalize for one chain. Runs server-side (API route) AND as the

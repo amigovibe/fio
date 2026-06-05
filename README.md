@@ -29,7 +29,7 @@ Fio is a Next.js Web3 accounting app. Connect a wallet (or paste any public addr
 |---|---|---|
 | Ethereum, Base, Polygon, Sepolia | Blockscout (keyless) or Etherscan V2 | No (key optional, raises rate limits) |
 | Bitcoin | mempool.space → blockstream.info fallback | No |
-| Solana | Helius | Yes (free) |
+| Solana | Public RPC (PublicNode), keyless · Helius when keyed | No (Helius optional, richer data) |
 
 ## Tech stack
 
@@ -56,11 +56,11 @@ npm run lint     # ESLint
 
 ### Environment variables (optional)
 
-Everything works **keyless** out of the box. To raise rate limits or enable Solana, copy `.env.local.example` to `.env.local` and fill in:
+Everything works **keyless** out of the box — including Solana. To raise rate limits (or get richer Solana data via Helius), copy `.env.local.example` to `.env.local` and fill in:
 
 ```bash
 ETHERSCAN_API_KEY=   # one key covers Ethereum, Base, Polygon & Sepolia (Etherscan V2)
-HELIUS_API_KEY=      # required to scan Solana addresses
+HELIUS_API_KEY=      # OPTIONAL — Solana works keyless; this adds richer parsed-transaction data
 ```
 
 Keys are read **server-side only** (no `NEXT_PUBLIC_` prefix), so they never reach the browser.

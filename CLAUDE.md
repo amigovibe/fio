@@ -84,7 +84,7 @@ All state lives in `page.tsx` and is passed down as props — no Redux, no Zusta
 All explorer calls go through our own backend routes (`src/app/api/*`), which fetch + normalize server-side and keep keys off the client. The client (`fetchTransactions` / `fetchLivePrices` in `utils/ethereum.ts`) calls the backend first and **falls back to a direct browser fetch** if the server can't reach the explorer (e.g. restricted egress), so scans work everywhere. The shared `fetchChainTransactions()` powers both paths.
 - **EVM (Ethereum, Base, Polygon, Sepolia)**: keyless Blockscout by default; Etherscan V2 multichain when `ETHERSCAN_API_KEY` is set (one key, all EVM chains). Capped to the 1,000 most recent txns.
 - **Bitcoin**: mempool.space (Esplora API), with blockstream.info as a fallback. Keyless.
-- **Solana**: Helius parsed transactions — requires `HELIUS_API_KEY` (or a per-chain key in the Settings drawer).
+- **Solana**: keyless by default via public JSON-RPC (PublicNode — `getSignaturesForAddress` + per-tx `getTransaction`, bounded concurrency). Uses Helius parsed transactions for richer data when `HELIUS_API_KEY` (or a Settings-drawer key) is set, falling back to the public RPC if Helius is unreachable.
 - **Prices**: CoinGecko (keyless) via `/api/prices`.
 - Optional keys are server-side env vars (`ETHERSCAN_API_KEY`, `HELIUS_API_KEY`) — see `.env.local.example`. Legacy `NEXT_PUBLIC_*` names are still honoured.
 
