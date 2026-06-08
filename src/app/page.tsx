@@ -1,5 +1,5 @@
 'use client';
-
+import { Analytics } from "@vercel/analytics/next"
 import React, { useState, useEffect } from 'react';
 import { WalletConnect } from '../components/WalletConnect';
 import { Dashboard } from '../components/Dashboard';
