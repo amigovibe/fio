@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Web3Provider } from '../context/Web3Provider';
+import { Analytics } from '@vercel/analytics/next';
 
 export const metadata: Metadata = {
   title: 'Fio — Web3 Receipts & Gas Analytics',
@@ -25,6 +26,7 @@ export default function RootLayout({
         <Web3Provider>
           {children}
         </Web3Provider>
+        <Analytics />
       </body>
     </html>
   );
